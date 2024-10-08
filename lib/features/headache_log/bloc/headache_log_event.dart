@@ -1,5 +1,8 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fray/features/headache_log/bloc/headache_log_state.dart';
 import 'package:fray/models/headache_enum.dart';
+import 'package:fray/repositories/headache_log_repository.dart';
 
 abstract class HeadacheLogEvent extends Equatable {
   const HeadacheLogEvent();
@@ -64,4 +67,50 @@ class EditHeadacheLog extends HeadacheLogEvent {
   @override
   List<Object?> get props =>
       [intensity, headacheLocation, headacheQuality, startTime, endTime];
+}
+
+class HeadacheLogBloc extends Bloc<HeadacheLogEvent, HeadacheLogState> {
+  final HeadacheLogRepository formRepository;
+
+  HeadacheLogBloc({required this.formRepository})
+      : super(
+          HeadacheLogState(
+            startTime: DateTime.fromMillisecondsSinceEpoch(0),
+            intensity: HeadacheIntensity.unspecified,
+            headacheLocation: HeadacheLocation.unspecified,
+            headacheQuality: HeadacheQuality.unspecified,
+          ),
+        ) {
+    on<AddHeadacheLog>((event, emit) async {
+      await formRepository.addHeadacheLog(
+        startTime: event.startTime,
+        endTime: event.endTime,
+        intensity: event.intensity,
+        headacheLocation: event.headacheLocation,
+        headacheQuality: event.headacheQuality,
+      );
+      emit(state.copyWith());
+    });
+
+    on<LoadHeadacheLog>((event, emit) async {
+      formRepository.loadHeadacheLog(event.startTime);
+      emit(state.copyWith());
+    });
+
+    on<RemoveHeadacheLog>((event, emit) {
+      formRepository.removeHeadacheLog(event.startTime);
+      emit(state.copyWith());
+    });
+
+    on<EditHeadacheLog>((event, emit) async {
+      await formRepository.editHeadacheLog(
+        startTime: event.startTime!,
+        endTime: event.endTime,
+        intensity: event.intensity,
+        headacheLocation: event.headacheLocation,
+        headacheQuality: event.headacheQuality,
+      );
+      emit(state.copyWith());
+    });
+  }
 }
