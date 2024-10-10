@@ -19,11 +19,11 @@ class SettingsRepository {
   SettingsRepository._();
 
   Future<void> _initializePrefences(BuildContext? context) async {
+    _preferences = await SharedPreferences.getInstance();
     _initializeLanguage();
     if (context != null) {
       _initializeTheme(context);
     }
-    _preferences = await SharedPreferences.getInstance();
   }
 
   Future<void> _initializeLanguage() async {
