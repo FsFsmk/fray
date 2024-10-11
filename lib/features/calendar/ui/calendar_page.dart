@@ -28,12 +28,34 @@ class CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: _calendarView == CalendarView.monthly
-          ? const MonthlyCalendarView()
-          : _calendarView == CalendarView.weekly
-              ? const WeeklyView()
-              : const DailyView(),
+    return Center(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          double dynamicHeight = constraints.maxHeight * 0.7;
+          return Card(
+            elevation: 8.0,
+            shadowColor: Colors.black.withOpacity(0.5),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(
+                16.0,
+              ),
+              child: SizedBox(
+                height: dynamicHeight,
+                child: _calendarView == CalendarView.monthly
+                    ? MonthlyCalendarView(
+                        initialDateTime: DateTime.now(),
+                      )
+                    : _calendarView == CalendarView.weekly
+                        ? const WeeklyView()
+                        : const DailyView(),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

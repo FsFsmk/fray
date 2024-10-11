@@ -1,4 +1,9 @@
-enum HeadacheIntensity { mild, moderate, severe, unspecified }
+enum HeadacheIntensity {
+  unspecified,
+  mild,
+  moderate,
+  severe,
+}
 
 enum HeadacheLocation {
   unilateral,
