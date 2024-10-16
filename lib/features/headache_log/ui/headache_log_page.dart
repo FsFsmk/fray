@@ -3,8 +3,13 @@ import 'package:intl/intl.dart';
 
 class HeadacheLogPage extends StatelessWidget {
   final DateTime selectedDate;
+  final bool hasLogs;
 
-  const HeadacheLogPage({super.key, required this.selectedDate});
+  const HeadacheLogPage({
+    super.key,
+    required this.selectedDate,
+    required this.hasLogs,
+  });
 
   @override
   Widget build(BuildContext context) {

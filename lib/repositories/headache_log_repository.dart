@@ -6,7 +6,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 class HeadacheLogRepository {
   late final SharedPreferences _preferences;
 
-  Future<void> initializePreferences() async {
+  static HeadacheLogRepository? _instance;
+  static Future<HeadacheLogRepository> getInstance() async {
+    if (_instance == null) {
+      _instance = HeadacheLogRepository._();
+      await _instance!._initializePrefences();
+    }
+    return _instance!;
+  }
+
+  HeadacheLogRepository._();
+
+  Future<void> _initializePrefences() async {
     _preferences = await SharedPreferences.getInstance();
   }
 

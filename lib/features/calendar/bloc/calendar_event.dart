@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fray/features/calendar/bloc/calendar_state.dart';
+import 'package:fray/repositories/headache_log_repository.dart';
 
 abstract class CalendarEvent extends Equatable {
   const CalendarEvent();
@@ -19,11 +20,27 @@ class SelectDay extends CalendarEvent {
 }
 
 class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
-  CalendarBloc() : super(const CalendarState(selectedDay: null)) {
-    on<SelectDay>(
-      (event, emit) {
-        emit(state.copyWith(selectedDay: event.selectedDay));
-      },
-    );
+  final HeadacheLogRepository headacheLogRepository;
+
+  CalendarBloc({required this.headacheLogRepository})
+      : super(const CalendarState(
+          selectedDay: null,
+          hasHeadacheLogs: false,
+          headacheIntensities: {},
+        )) {
+    on<SelectDay>((event, emit) async {
+      final hasLogs =
+          await headacheLogRepository.hasLogsForDay(event.selectedDay);
+      final intensities = await headacheLogRepository
+          .getHeadacheIntensitiesForDay(event.selectedDay);
+      emit(state.copyWith(
+        selectedDay: event.selectedDay,
+        hasHeadacheLogs: hasLogs,
+        headacheIntensities: {
+          ...state.headacheIntensities,
+          event.selectedDay: intensities,
+        },
+      ));
+    });
   }
 }
