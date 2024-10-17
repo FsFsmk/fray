@@ -7,6 +7,9 @@ class HeadacheLogState extends Equatable {
   final HeadacheIntensity intensity;
   final HeadacheLocation headacheLocation;
   final HeadacheQuality headacheQuality;
+  final List<Map<String, dynamic>>? headacheLogs;
+  final bool isLoading;
+  final String? errorMessage;
 
   const HeadacheLogState({
     required this.startTime,
@@ -14,6 +17,9 @@ class HeadacheLogState extends Equatable {
     required this.intensity,
     required this.headacheLocation,
     required this.headacheQuality,
+    this.headacheLogs,
+    this.isLoading = false,
+    this.errorMessage,
   });
 
   HeadacheLogState copyWith({
@@ -22,6 +28,9 @@ class HeadacheLogState extends Equatable {
     HeadacheIntensity? intensity,
     HeadacheLocation? headacheLocation,
     HeadacheQuality? headacheQuality,
+    List<Map<String, dynamic>>? headacheLogs,
+    bool? isLoading,
+    String? errorMessage,
   }) {
     return HeadacheLogState(
       startTime: startTime ?? this.startTime,
@@ -29,10 +38,21 @@ class HeadacheLogState extends Equatable {
       intensity: intensity ?? this.intensity,
       headacheLocation: headacheLocation ?? this.headacheLocation,
       headacheQuality: headacheQuality ?? this.headacheQuality,
+      headacheLogs: headacheLogs ?? this.headacheLogs,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 
   @override
-  List<Object?> get props =>
-      [startTime, endTime, intensity, headacheLocation, headacheQuality];
+  List<Object?> get props => [
+        startTime,
+        endTime,
+        intensity,
+        headacheLocation,
+        headacheQuality,
+        headacheLogs,
+        isLoading,
+        errorMessage,
+      ];
 }

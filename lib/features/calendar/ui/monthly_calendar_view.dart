@@ -8,9 +8,7 @@ import 'package:fray/models/headache_enum.dart';
 import 'package:gap/gap.dart';
 
 class MonthlyCalendarView extends StatefulWidget {
-  final DateTime initialDateTime;
-
-  const MonthlyCalendarView({super.key, required this.initialDateTime});
+  const MonthlyCalendarView({super.key});
 
   @override
   State<StatefulWidget> createState() => MonthlyCalendarViewState();
@@ -23,7 +21,7 @@ class MonthlyCalendarViewState extends State<MonthlyCalendarView> {
   @override
   void initState() {
     super.initState();
-    currentMonth = widget.initialDateTime;
+    currentMonth = DateTime.now();
     datesGrid = _generateDatesGrid(currentMonth);
   }
 

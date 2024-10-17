@@ -69,6 +69,25 @@ class EditHeadacheLog extends HeadacheLogEvent {
       [intensity, headacheLocation, headacheQuality, startTime, endTime];
 }
 
+class GetHeadacheLogsForDay extends HeadacheLogEvent {
+  final DateTime date;
+
+  const GetHeadacheLogsForDay(this.date);
+
+  @override
+  List<Object> get props => [date];
+}
+
+class GetHeadacheLogsForDateRange extends HeadacheLogEvent {
+  final DateTime startDate;
+  final DateTime endDate;
+
+  const GetHeadacheLogsForDateRange(this.startDate, this.endDate);
+
+  @override
+  List<Object> get props => [startDate, endDate];
+}
+
 class HeadacheLogBloc extends Bloc<HeadacheLogEvent, HeadacheLogState> {
   final HeadacheLogRepository formRepository;
 
@@ -111,6 +130,30 @@ class HeadacheLogBloc extends Bloc<HeadacheLogEvent, HeadacheLogState> {
         headacheQuality: event.headacheQuality,
       );
       emit(state.copyWith());
+    });
+
+    on<GetHeadacheLogsForDay>((event, emit) async {
+      emit(state.copyWith(isLoading: true));
+      try {
+        await formRepository.getHeadacheIntensitiesForDay(event.date);
+        emit(state.copyWith());
+      } catch (e) {
+        emit(state.copyWith(
+            isLoading: false, errorMessage: 'Failed to load logs'));
+      }
+    });
+
+    on<GetHeadacheLogsForDateRange>((event, emit) async {
+      emit(state.copyWith(isLoading: true));
+      try {
+        final logs = await formRepository.getHeadacheLogsForDateRange(
+            event.startDate, event.endDate);
+        emit(state.copyWith(
+            headacheLogs: logs, isLoading: false, errorMessage: null));
+      } catch (e) {
+        emit(state.copyWith(
+            isLoading: false, errorMessage: 'Failed to load logs'));
+      }
     });
   }
 }

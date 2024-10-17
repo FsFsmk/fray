@@ -56,9 +56,7 @@ class CalendarPageState extends State<CalendarPage> {
                 child: SizedBox(
                   height: dynamicHeight,
                   child: _calendarView == CalendarView.monthly
-                      ? MonthlyCalendarView(
-                          initialDateTime: DateTime.now(),
-                        )
+                      ? const MonthlyCalendarView()
                       : _calendarView == CalendarView.weekly
                           ? const WeeklyView()
                           : const DailyView(),
