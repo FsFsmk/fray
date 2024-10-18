@@ -38,9 +38,10 @@ class HeadacheLogRepository {
       intensity: intensity,
       headacheLocation: headacheLocation,
       startTime: startTime,
+      endTime: endTime,
     );
 
-    await _preferences.setString(logId, json.encode(newLog));
+    await _preferences.setString(logId, json.encode(newLog.toJson()));
     existingLogIds.add(logId);
     await _preferences.setString(dateKey, json.encode(existingLogIds));
   }
@@ -53,7 +54,8 @@ class HeadacheLogRepository {
     for (String logId in logIds) {
       String? headacheLogJson = _preferences.getString(logId);
       if (headacheLogJson != null) {
-        HeadacheLog headacheLogMap = json.decode(headacheLogJson);
+        HeadacheLog headacheLogMap =
+            HeadacheLog.fromJson(json.decode(headacheLogJson));
         HeadacheLogState headacheFormState = HeadacheLogState(
           startTime: headacheLogMap.startTime,
           endTime: headacheLogMap.endTime,
@@ -92,8 +94,9 @@ class HeadacheLogRepository {
   }) async {
     final String logId = startTime.millisecondsSinceEpoch.toString();
     String? existingLogJson = _preferences.getString(logId);
-    HeadacheLog updatedLog =
-        existingLogJson != null ? json.decode(existingLogJson) : {};
+    HeadacheLog updatedLog = existingLogJson != null
+        ? HeadacheLog.fromJson(json.decode(existingLogJson))
+        : throw Exception('Log not found');
 
     updatedLog.startTime = startTime;
     if (endTime != null) {
@@ -109,12 +112,13 @@ class HeadacheLogRepository {
       updatedLog.headacheQuality = headacheQuality;
     }
 
-    await _preferences.setString(logId, json.encode(updatedLog));
+    await _preferences.setString(logId, json.encode(updatedLog.toJson()));
   }
 
   Future<List<HeadacheLog>> getHeadacheLogsForDay(DateTime date) async {
     final String dateKey = _formatDate(date);
     final String? headacheLogIdsJson = _preferences.getString(dateKey);
+
     if (headacheLogIdsJson == null) return [];
 
     final List<String> headacheLogIds =
@@ -122,9 +126,17 @@ class HeadacheLogRepository {
     List<HeadacheLog> headacheLogs = [];
 
     for (String logId in headacheLogIds) {
-      final String? logDataJson = _preferences.getString(logId);
-      if (logDataJson != null) {
-        headacheLogs.add(json.decode(logDataJson));
+      final dynamic logData = _preferences.get(logId);
+
+      if (logData is String) {
+        try {
+          final Map<String, dynamic> logDataMap = json.decode(logData);
+          headacheLogs.add(HeadacheLog.fromJson(logDataMap));
+        } catch (e) {
+          throw Exception('Error parsing log data for $logId: $e');
+        }
+      } else {
+        throw Exception('Unexpected data type for logId $logId: $logData');
       }
     }
 

@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fray/features/headache_log/bloc/headache_log_state.dart';
 import 'package:fray/models/headache_enum.dart';
+import 'package:fray/models/headache_log.dart';
 import 'package:fray/repositories/headache_log_repository.dart';
 
 abstract class HeadacheLogEvent extends Equatable {
@@ -12,23 +13,14 @@ abstract class HeadacheLogEvent extends Equatable {
 }
 
 class AddHeadacheLog extends HeadacheLogEvent {
-  final HeadacheIntensity intensity;
-  final HeadacheLocation headacheLocation;
-  final HeadacheQuality headacheQuality;
-  final DateTime startTime;
-  final DateTime? endTime;
+  final HeadacheLog headacheLog;
 
   const AddHeadacheLog(
-    this.intensity,
-    this.headacheLocation,
-    this.headacheQuality,
-    this.startTime,
-    this.endTime,
+    this.headacheLog,
   );
 
   @override
-  List<Object?> get props =>
-      [intensity, headacheLocation, headacheQuality, startTime, endTime];
+  List<Object?> get props => [headacheLog];
 }
 
 class LoadHeadacheLog extends HeadacheLogEvent {
@@ -53,7 +45,7 @@ class EditHeadacheLog extends HeadacheLogEvent {
   final HeadacheIntensity? intensity;
   final HeadacheLocation? headacheLocation;
   final HeadacheQuality? headacheQuality;
-  final DateTime? startTime;
+  final DateTime startTime;
   final DateTime? endTime;
 
   const EditHeadacheLog(
@@ -102,11 +94,11 @@ class HeadacheLogBloc extends Bloc<HeadacheLogEvent, HeadacheLogState> {
         ) {
     on<AddHeadacheLog>((event, emit) async {
       await formRepository.addHeadacheLog(
-        startTime: event.startTime,
-        endTime: event.endTime,
-        intensity: event.intensity,
-        headacheLocation: event.headacheLocation,
-        headacheQuality: event.headacheQuality,
+        startTime: event.headacheLog.startTime,
+        endTime: event.headacheLog.endTime,
+        intensity: event.headacheLog.intensity,
+        headacheLocation: event.headacheLog.headacheLocation,
+        headacheQuality: event.headacheLog.headacheQuality,
       );
       emit(state.copyWith());
     });
@@ -123,7 +115,7 @@ class HeadacheLogBloc extends Bloc<HeadacheLogEvent, HeadacheLogState> {
 
     on<EditHeadacheLog>((event, emit) async {
       await formRepository.editHeadacheLog(
-        startTime: event.startTime!,
+        startTime: event.startTime,
         endTime: event.endTime,
         intensity: event.intensity,
         headacheLocation: event.headacheLocation,
