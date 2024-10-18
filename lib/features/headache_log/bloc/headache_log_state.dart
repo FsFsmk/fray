@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:fray/models/headache_enum.dart';
+import 'package:fray/models/headache_log.dart';
 
 class HeadacheLogState extends Equatable {
   final DateTime startTime;
@@ -7,7 +8,7 @@ class HeadacheLogState extends Equatable {
   final HeadacheIntensity intensity;
   final HeadacheLocation headacheLocation;
   final HeadacheQuality headacheQuality;
-  final List<Map<String, dynamic>>? headacheLogs;
+  final List<HeadacheLog>? headacheLogs;
   final bool isLoading;
   final String? errorMessage;
 
@@ -28,7 +29,7 @@ class HeadacheLogState extends Equatable {
     HeadacheIntensity? intensity,
     HeadacheLocation? headacheLocation,
     HeadacheQuality? headacheQuality,
-    List<Map<String, dynamic>>? headacheLogs,
+    List<HeadacheLog>? headacheLogs,
     bool? isLoading,
     String? errorMessage,
   }) {

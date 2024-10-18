@@ -5,6 +5,7 @@ import 'package:fray/features/headache_log/bloc/headache_log_event.dart';
 import 'package:fray/features/headache_log/bloc/headache_log_state.dart';
 import 'package:fray/features/headache_log/ui/headache_log_page.dart';
 import 'package:fray/models/headache_enum.dart';
+import 'package:fray/models/headache_log.dart';
 import 'package:fray/repositories/headache_log_repository.dart';
 import 'package:intl/intl.dart';
 
@@ -138,8 +139,7 @@ class _WeeklyViewState extends State<WeeklyView> {
     );
   }
 
-  Widget _buildLogs(
-      List<Map<String, dynamic>> logs, List<DateTime> daysOfWeek) {
+  Widget _buildLogs(List<HeadacheLog> logs, List<DateTime> daysOfWeek) {
     return ListView.builder(
       itemCount: daysOfWeek.length,
       itemBuilder: (context, index) {
@@ -149,7 +149,7 @@ class _WeeklyViewState extends State<WeeklyView> {
             DateTime.now().day == day.day;
 
         final dailyLogs = logs.where((log) {
-          final logDate = log['start_time'] as DateTime;
+          final logDate = log.startTime;
           return logDate.year == day.year &&
               logDate.month == day.month &&
               logDate.day == day.day;
@@ -206,10 +206,10 @@ class _WeeklyViewState extends State<WeeklyView> {
     );
   }
 
-  Widget _buildLogItem(Map<String, dynamic> log) {
-    final startTime = log['start_time'] as DateTime;
-    final endTime = log['end_time'] as DateTime?;
-    final intensity = log['intensity'] as HeadacheIntensity;
+  Widget _buildLogItem(HeadacheLog log) {
+    final startTime = log.startTime;
+    final endTime = log.endTime;
+    final intensity = log.intensity;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

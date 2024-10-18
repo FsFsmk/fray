@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:fray/features/headache_log/bloc/headache_log_state.dart';
 import 'package:fray/models/headache_enum.dart';
+import 'package:fray/models/headache_log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HeadacheLogRepository {
@@ -32,13 +33,12 @@ class HeadacheLogRepository {
     final String logId = startTime.millisecondsSinceEpoch.toString();
     final List<String> existingLogIds = await _getLogIdsForDay(dateKey);
 
-    final Map<String, dynamic> newLog = {
-      'startTime': startTime.millisecondsSinceEpoch,
-      'endTime': endTime?.millisecondsSinceEpoch,
-      'intensity': intensity.toString(),
-      'headacheLocation': headacheLocation.toString(),
-      'headacheQuality': headacheQuality.toString(),
-    };
+    final newLog = HeadacheLog(
+      headacheQuality: headacheQuality,
+      intensity: intensity,
+      headacheLocation: headacheLocation,
+      startTime: startTime,
+    );
 
     await _preferences.setString(logId, json.encode(newLog));
     existingLogIds.add(logId);
@@ -53,18 +53,13 @@ class HeadacheLogRepository {
     for (String logId in logIds) {
       String? headacheLogJson = _preferences.getString(logId);
       if (headacheLogJson != null) {
-        Map<String, dynamic> headacheLogMap = json.decode(headacheLogJson);
+        HeadacheLog headacheLogMap = json.decode(headacheLogJson);
         HeadacheLogState headacheFormState = HeadacheLogState(
-          startTime:
-              DateTime.fromMillisecondsSinceEpoch(headacheLogMap['startTime']),
-          endTime: headacheLogMap['endTime'] != null
-              ? DateTime.fromMillisecondsSinceEpoch(headacheLogMap['endTime'])
-              : null,
-          headacheLocation:
-              HeadacheLocation.values[headacheLogMap['headacheLocation']],
-          headacheQuality:
-              HeadacheQuality.values[headacheLogMap['headacheQuality']],
-          intensity: HeadacheIntensity.values[headacheLogMap['intensity']],
+          startTime: headacheLogMap.startTime,
+          endTime: headacheLogMap.endTime,
+          headacheLocation: headacheLogMap.headacheLocation,
+          headacheQuality: headacheLogMap.headacheQuality,
+          intensity: headacheLogMap.intensity,
         );
         headacheLogs.add(headacheFormState);
       }
@@ -97,35 +92,34 @@ class HeadacheLogRepository {
   }) async {
     final String logId = startTime.millisecondsSinceEpoch.toString();
     String? existingLogJson = _preferences.getString(logId);
-    Map<String, dynamic> updatedLog =
+    HeadacheLog updatedLog =
         existingLogJson != null ? json.decode(existingLogJson) : {};
 
-    updatedLog['startTime'] = startTime.millisecondsSinceEpoch;
+    updatedLog.startTime = startTime;
     if (endTime != null) {
-      updatedLog['endTime'] = endTime.millisecondsSinceEpoch;
+      updatedLog.endTime = endTime;
     }
     if (intensity != null) {
-      updatedLog['intensity'] = intensity.index;
+      updatedLog.intensity = intensity;
     }
     if (headacheLocation != null) {
-      updatedLog['headacheLocation'] = headacheLocation.index;
+      updatedLog.headacheLocation = headacheLocation;
     }
     if (headacheQuality != null) {
-      updatedLog['headacheQuality'] = headacheQuality.index;
+      updatedLog.headacheQuality = headacheQuality;
     }
 
     await _preferences.setString(logId, json.encode(updatedLog));
   }
 
-  Future<List<Map<String, dynamic>>> getHeadacheLogsForDay(
-      DateTime date) async {
+  Future<List<HeadacheLog>> getHeadacheLogsForDay(DateTime date) async {
     final String dateKey = _formatDate(date);
     final String? headacheLogIdsJson = _preferences.getString(dateKey);
     if (headacheLogIdsJson == null) return [];
 
     final List<String> headacheLogIds =
         List<String>.from(json.decode(headacheLogIdsJson));
-    List<Map<String, dynamic>> headacheLogs = [];
+    List<HeadacheLog> headacheLogs = [];
 
     for (String logId in headacheLogIds) {
       final String? logDataJson = _preferences.getString(logId);
@@ -139,21 +133,20 @@ class HeadacheLogRepository {
 
   Future<List<HeadacheIntensity>> getHeadacheIntensitiesForDay(
       DateTime date) async {
-    final List<Map<String, dynamic>> logs = await getHeadacheLogsForDay(date);
+    final List<HeadacheLog> logs = await getHeadacheLogsForDay(date);
     return logs.map<HeadacheIntensity>((log) {
-      return HeadacheIntensity.values[log['intensity']];
+      return log.intensity;
     }).toList();
   }
 
-  Future<List<Map<String, dynamic>>> getHeadacheLogsForDateRange(
+  Future<List<HeadacheLog>> getHeadacheLogsForDateRange(
       DateTime startDate, DateTime endDate) async {
-    List<Map<String, dynamic>> logsInRange = [];
+    List<HeadacheLog> logsInRange = [];
 
     for (DateTime date = startDate;
         date.isBefore(endDate.add(const Duration(days: 1)));
         date = date.add(const Duration(days: 1))) {
-      final List<Map<String, dynamic>> dailyLogs =
-          await getHeadacheLogsForDay(date);
+      final List<HeadacheLog> dailyLogs = await getHeadacheLogsForDay(date);
 
       logsInRange.addAll(dailyLogs);
     }
