@@ -100,12 +100,30 @@ class HeadacheLogBloc extends Bloc<HeadacheLogEvent, HeadacheLogState> {
         headacheLocation: event.headacheLog.headacheLocation,
         headacheQuality: event.headacheLog.headacheQuality,
       );
-      emit(state.copyWith());
+      try {
+        List<HeadacheLog> logs =
+            formRepository.loadHeadacheLog(event.headacheLog.startTime);
+        emit(state.copyWith(headacheLogs: logs));
+      } catch (e) {
+        emit(state.copyWith(
+          isLoading: false,
+          errorMessage: 'Failed to load logs after addition: $e',
+        ));
+      }
     });
 
-    on<RemoveHeadacheLog>((event, emit) {
-      formRepository.removeHeadacheLog(event.startTime);
-      emit(state.copyWith());
+    on<RemoveHeadacheLog>((event, emit) async {
+      await formRepository.removeHeadacheLog(event.startTime);
+      try {
+        List<HeadacheLog> logs =
+            formRepository.loadHeadacheLog(event.startTime);
+        emit(state.copyWith(headacheLogs: logs));
+      } catch (e) {
+        emit(state.copyWith(
+          isLoading: false,
+          errorMessage: 'Failed to load logs after deletion: $e',
+        ));
+      }
     });
 
     on<EditHeadacheLog>((event, emit) async {
@@ -116,7 +134,16 @@ class HeadacheLogBloc extends Bloc<HeadacheLogEvent, HeadacheLogState> {
         headacheLocation: event.headacheLocation,
         headacheQuality: event.headacheQuality,
       );
-      emit(state.copyWith());
+      try {
+        List<HeadacheLog> logs =
+            formRepository.loadHeadacheLog(event.startTime);
+        emit(state.copyWith(headacheLogs: logs));
+      } catch (e) {
+        emit(state.copyWith(
+          isLoading: false,
+          errorMessage: 'Failed to load logs after editing: $e',
+        ));
+      }
     });
 
     on<LoadHeadacheLog>((event, emit) async {
