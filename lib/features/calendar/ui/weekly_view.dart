@@ -211,17 +211,38 @@ class _WeeklyViewState extends State<WeeklyView> {
     final endTime = log.endTime;
     final intensity = log.intensity;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-            '${DateFormat.jm().format(startTime)} - ${endTime != null ? DateFormat.jm().format(endTime) : 'Ongoing'}'),
-        Row(
-          children: [
-            _buildTimeline(startTime, endTime, intensity),
-          ],
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                DateFormat.jm().format(startTime),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                endTime != null ? DateFormat.jm().format(endTime) : 'Ongoing',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.centerRight,
+            child: _buildTimeline(startTime, endTime, intensity),
+          ),
+          const SizedBox(height: 10),
+        ],
+      ),
     );
   }
 
