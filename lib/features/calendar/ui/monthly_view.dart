@@ -9,14 +9,14 @@ import 'package:intl/intl.dart';
 import 'package:fray/models/headache_enum.dart';
 import 'package:gap/gap.dart';
 
-class MonthlyCalendarView extends StatefulWidget {
-  const MonthlyCalendarView({super.key});
+class MonthlyView extends StatefulWidget {
+  const MonthlyView({super.key});
 
   @override
-  State<StatefulWidget> createState() => MonthlyCalendarViewState();
+  State<StatefulWidget> createState() => MonthlyViewState();
 }
 
-class MonthlyCalendarViewState extends State<MonthlyCalendarView> {
+class MonthlyViewState extends State<MonthlyView> {
   late DateTime currentMonth;
   late List<DateTime> datesGrid;
   late HeadacheLogRepository headacheLogRepository;

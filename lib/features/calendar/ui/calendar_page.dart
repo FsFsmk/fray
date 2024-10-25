@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fray/features/calendar/bloc/calendar_event.dart';
 import 'package:fray/features/calendar/ui/daily_view.dart';
-import 'package:fray/features/calendar/ui/monthly_calendar_view.dart';
+import 'package:fray/features/calendar/ui/monthly_view.dart';
 import 'package:fray/features/calendar/ui/weekly_view.dart';
 import 'package:fray/features/settings/bloc/settings_state.dart';
 import 'package:fray/models/settings_enum.dart';
@@ -56,7 +56,7 @@ class CalendarPageState extends State<CalendarPage> {
                 child: SizedBox(
                   height: dynamicHeight,
                   child: _calendarView == CalendarView.monthly
-                      ? const MonthlyCalendarView()
+                      ? const MonthlyView()
                       : _calendarView == CalendarView.weekly
                           ? const WeeklyView()
                           : const DailyView(),
