@@ -24,10 +24,12 @@ class HeadacheLogPage extends StatefulWidget {
 class _HeadacheLogPageState extends State<HeadacheLogPage> {
   late final HeadacheLogRepository headacheLogRepository;
   HeadacheLogBloc? _headacheLogBloc;
+  bool _isInitialized = false;
 
   Future<void> initRepo() async {
     headacheLogRepository = await HeadacheLogRepository.getInstance();
     setState(() {
+      _isInitialized = true;
       _headacheLogBloc = HeadacheLogBloc(formRepository: headacheLogRepository);
     });
   }
@@ -73,30 +75,39 @@ class _HeadacheLogPageState extends State<HeadacheLogPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          DateFormat.yMMMMd(Localizations.localeOf(context).toString())
-              .format(widget.selectedDate),
-        ),
+    if (!_isInitialized) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return BlocProvider<HeadacheLogBloc>(
+      create: (context) => HeadacheLogBloc(
+        formRepository: headacheLogRepository,
       ),
-      body: widget.hasLogs
-          ? BlocBuilder<HeadacheLogBloc, HeadacheLogState>(
-              builder: (context, state) {
-                if (state.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (state.errorMessage != null) {
-                  return Center(child: Text('Error: ${state.errorMessage}'));
-                } else if (state.headacheLogs != null &&
-                    state.headacheLogs!.isNotEmpty) {
-                  return _buildLogOptions(state.headacheLogs!);
-                } else {
-                  return const Center(
-                      child: Text('No logs found for this day.'));
-                }
-              },
-            )
-          : _buildNewLogOption(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            DateFormat.yMMMMd(Localizations.localeOf(context).toString())
+                .format(widget.selectedDate),
+          ),
+        ),
+        body: widget.hasLogs
+            ? BlocBuilder<HeadacheLogBloc, HeadacheLogState>(
+                builder: (context, state) {
+                  if (state.isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (state.errorMessage != null) {
+                    return Center(child: Text('Error: ${state.errorMessage}'));
+                  } else if (state.headacheLogs != null &&
+                      state.headacheLogs!.isNotEmpty) {
+                    return _buildLogOptions(state.headacheLogs!);
+                  } else {
+                    return const Center(
+                        child: Text('No logs found for this day.'));
+                  }
+                },
+              )
+            : _buildNewLogOption(),
+      ),
     );
   }
 
@@ -137,109 +148,104 @@ class _HeadacheLogPageState extends State<HeadacheLogPage> {
     await showDialog(
       context: context,
       builder: (context) {
-        return BlocProvider(
-          create: (context) => HeadacheLogBloc(
-            formRepository: headacheLogRepository,
-          ),
-          child: StatefulBuilder(
-            builder: (context, setState) {
-              return AlertDialog(
-                title: const Text('Add New Headache Log'),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                        'Start Time: ${DateFormat.yMMMd().add_jm().format(startTime!)}'),
-                    TextButton(
-                      onPressed: () async {
-                        final newStartTime =
-                            await showDateTimePicker(context, startTime!);
-                        if (newStartTime != null) {
-                          setState(() {
-                            startTime = newStartTime;
-                          });
-                        }
-                      },
-                      child: const Text('Change Start Time'),
-                    ),
-                    DropdownButton<HeadacheIntensity>(
-                      hint: const Text('Select Intensity'),
-                      value: intensity,
-                      onChanged: (newIntensity) {
-                        setState(() {
-                          intensity = newIntensity!;
-                        });
-                      },
-                      items: HeadacheIntensity.values.map((intensity) {
-                        return DropdownMenuItem(
-                          value: intensity,
-                          child: Text(intensity.toString().split('.').last),
-                        );
-                      }).toList(),
-                    ),
-                    DropdownButton<HeadacheLocation>(
-                      hint: const Text('Select Location'),
-                      value: location,
-                      onChanged: (newLocation) {
-                        setState(() {
-                          location = newLocation!;
-                        });
-                      },
-                      items: HeadacheLocation.values.map((location) {
-                        return DropdownMenuItem(
-                          value: location,
-                          child: Text(location.toString().split('.').last),
-                        );
-                      }).toList(),
-                    ),
-                    DropdownButton<HeadacheQuality>(
-                      hint: const Text('Select Quality'),
-                      value: quality,
-                      onChanged: (newQuality) {
-                        setState(() {
-                          quality = newQuality!;
-                        });
-                      },
-                      items: HeadacheQuality.values.map((quality) {
-                        return DropdownMenuItem(
-                          value: quality,
-                          child: Text(quality.toString().split('.').last),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-                actions: [
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Add New Headache Log'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                      'Start Time: ${DateFormat.yMMMd().add_jm().format(startTime!)}'),
                   TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Cancel'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (intensity != null &&
-                          location != null &&
-                          quality != null) {
-                        final newLog = HeadacheLog(
-                          headacheQuality: quality!,
-                          intensity: intensity!,
-                          headacheLocation: location!,
-                          startTime: startTime!,
-                        );
-
-                        context
-                            .read<HeadacheLogBloc>()
-                            .add(AddHeadacheLog(newLog));
-                        Navigator.pop(context);
+                    onPressed: () async {
+                      final newStartTime =
+                          await showDateTimePicker(context, startTime!);
+                      if (newStartTime != null) {
+                        setState(() {
+                          startTime = newStartTime;
+                        });
                       }
                     },
-                    child: const Text('Save'),
+                    child: const Text('Change Start Time'),
+                  ),
+                  DropdownButton<HeadacheIntensity>(
+                    hint: const Text('Select Intensity'),
+                    value: intensity,
+                    onChanged: (newIntensity) {
+                      setState(() {
+                        intensity = newIntensity!;
+                      });
+                    },
+                    items: HeadacheIntensity.values.map((intensity) {
+                      return DropdownMenuItem(
+                        value: intensity,
+                        child: Text(intensity.toString().split('.').last),
+                      );
+                    }).toList(),
+                  ),
+                  DropdownButton<HeadacheLocation>(
+                    hint: const Text('Select Location'),
+                    value: location,
+                    onChanged: (newLocation) {
+                      setState(() {
+                        location = newLocation!;
+                      });
+                    },
+                    items: HeadacheLocation.values.map((location) {
+                      return DropdownMenuItem(
+                        value: location,
+                        child: Text(location.toString().split('.').last),
+                      );
+                    }).toList(),
+                  ),
+                  DropdownButton<HeadacheQuality>(
+                    hint: const Text('Select Quality'),
+                    value: quality,
+                    onChanged: (newQuality) {
+                      setState(() {
+                        quality = newQuality!;
+                      });
+                    },
+                    items: HeadacheQuality.values.map((quality) {
+                      return DropdownMenuItem(
+                        value: quality,
+                        child: Text(quality.toString().split('.').last),
+                      );
+                    }).toList(),
                   ),
                 ],
-              );
-            },
-          ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (intensity != null &&
+                        location != null &&
+                        quality != null) {
+                      final newLog = HeadacheLog(
+                        headacheQuality: quality!,
+                        intensity: intensity!,
+                        headacheLocation: location!,
+                        startTime: startTime!,
+                      );
+
+                      context
+                          .read<HeadacheLogBloc>()
+                          .add(AddHeadacheLog(newLog));
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
         );
       },
     );

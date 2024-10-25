@@ -103,11 +103,6 @@ class HeadacheLogBloc extends Bloc<HeadacheLogEvent, HeadacheLogState> {
       emit(state.copyWith());
     });
 
-    on<LoadHeadacheLog>((event, emit) async {
-      formRepository.loadHeadacheLog(event.startTime);
-      emit(state.copyWith());
-    });
-
     on<RemoveHeadacheLog>((event, emit) {
       formRepository.removeHeadacheLog(event.startTime);
       emit(state.copyWith());
@@ -124,14 +119,14 @@ class HeadacheLogBloc extends Bloc<HeadacheLogEvent, HeadacheLogState> {
       emit(state.copyWith());
     });
 
-    on<GetHeadacheLogsForDay>((event, emit) async {
-      emit(state.copyWith(isLoading: true));
+    on<LoadHeadacheLog>((event, emit) async {
       try {
-        await formRepository.getHeadacheIntensitiesForDay(event.date);
-        emit(state.copyWith());
+        List<HeadacheLog> logs =
+            formRepository.loadHeadacheLog(event.startTime);
+        emit(state.copyWith(headacheLogs: logs, isLoading: false));
       } catch (e) {
         emit(state.copyWith(
-            isLoading: false, errorMessage: 'Failed to load logs'));
+            isLoading: false, errorMessage: 'Failed to load logs: $e'));
       }
     });
 

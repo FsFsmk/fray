@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:fray/features/headache_log/bloc/headache_log_state.dart';
 import 'package:fray/models/headache_enum.dart';
 import 'package:fray/models/headache_log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -46,17 +45,17 @@ class HeadacheLogRepository {
     await _preferences.setString(dateKey, json.encode(existingLogIds));
   }
 
-  List<HeadacheLogState> loadHeadacheLog(DateTime startTime) {
+  List<HeadacheLog> loadHeadacheLog(DateTime startTime) {
     final String dateKey = _formatDate(startTime);
     final List<String> logIds = _getLogIdsForDaySync(dateKey);
-    List<HeadacheLogState> headacheLogs = [];
+    List<HeadacheLog> headacheLogs = [];
 
     for (String logId in logIds) {
       String? headacheLogJson = _preferences.getString(logId);
       if (headacheLogJson != null) {
         HeadacheLog headacheLogMap =
             HeadacheLog.fromJson(json.decode(headacheLogJson));
-        HeadacheLogState headacheFormState = HeadacheLogState(
+        HeadacheLog headacheFormState = HeadacheLog(
           startTime: headacheLogMap.startTime,
           endTime: headacheLogMap.endTime,
           headacheLocation: headacheLogMap.headacheLocation,
