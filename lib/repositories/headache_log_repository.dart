@@ -45,29 +45,6 @@ class HeadacheLogRepository {
     await _preferences.setString(dateKey, json.encode(existingLogIds));
   }
 
-  List<HeadacheLog> loadHeadacheLog(DateTime startTime) {
-    final String dateKey = _formatDate(startTime);
-    final List<String> logIds = _getLogIdsForDaySync(dateKey);
-    List<HeadacheLog> headacheLogs = [];
-
-    for (String logId in logIds) {
-      String? headacheLogJson = _preferences.getString(logId);
-      if (headacheLogJson != null) {
-        HeadacheLog headacheLogMap =
-            HeadacheLog.fromJson(json.decode(headacheLogJson));
-        HeadacheLog headacheFormState = HeadacheLog(
-          startTime: headacheLogMap.startTime,
-          endTime: headacheLogMap.endTime,
-          headacheLocation: headacheLogMap.headacheLocation,
-          headacheQuality: headacheLogMap.headacheQuality,
-          intensity: headacheLogMap.intensity,
-        );
-        headacheLogs.add(headacheFormState);
-      }
-    }
-    return headacheLogs;
-  }
-
   Future<bool> hasLogsForDay(DateTime date) async {
     final String dateKey = _formatDate(date);
     final List<String> logIds = await _getLogIdsForDay(dateKey);

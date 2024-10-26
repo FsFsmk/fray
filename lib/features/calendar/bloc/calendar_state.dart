@@ -13,12 +13,14 @@ class CalendarState extends Equatable {
   });
 
   @override
-  List<Object?> get props => [selectedDay, hasHeadacheLogs];
+  List<Object?> get props =>
+      [selectedDay, hasHeadacheLogs, headacheIntensities];
 
-  CalendarState copyWith(
-      {DateTime? selectedDay,
-      bool? hasHeadacheLogs,
-      Map<DateTime, List<HeadacheIntensity>>? headacheIntensities}) {
+  CalendarState copyWith({
+    DateTime? selectedDay,
+    bool? hasHeadacheLogs,
+    Map<DateTime, List<HeadacheIntensity>>? headacheIntensities,
+  }) {
     return CalendarState(
       selectedDay: selectedDay ?? this.selectedDay,
       hasHeadacheLogs: hasHeadacheLogs ?? this.hasHeadacheLogs,

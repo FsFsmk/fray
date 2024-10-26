@@ -37,6 +37,12 @@ class MonthlyViewState extends State<MonthlyView> {
     initRepo();
     currentMonth = DateTime.now();
     datesGrid = _generateDatesGrid(currentMonth);
+
+    final calendarBloc = BlocProvider.of<CalendarBloc>(context);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      calendarBloc.add(LoadMonthData(currentMonth));
+    });
   }
 
   List<DateTime> _generateDatesGrid(DateTime month) {
@@ -82,6 +88,8 @@ class MonthlyViewState extends State<MonthlyView> {
 
   @override
   Widget build(BuildContext context) {
+    final calendarBloc = BlocProvider.of<CalendarBloc>(context);
+
     if (!_isInitialized) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -96,11 +104,18 @@ class MonthlyViewState extends State<MonthlyView> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back_ios),
-                    onPressed: () => setState(() {
-                      currentMonth =
-                          DateTime(currentMonth.year, currentMonth.month - 1);
-                      datesGrid = _generateDatesGrid(currentMonth);
-                    }),
+                    onPressed: () {
+                      setState(() {
+                        currentMonth = DateTime(
+                          currentMonth.month == 1
+                              ? currentMonth.year - 1
+                              : currentMonth.year,
+                          currentMonth.month - 1,
+                        );
+                        datesGrid = _generateDatesGrid(currentMonth);
+                      });
+                      calendarBloc.add(LoadMonthData(currentMonth));
+                    },
                   ),
                   Text(
                     DateFormat.yMMMM(Localizations.localeOf(context).toString())
@@ -112,11 +127,18 @@ class MonthlyViewState extends State<MonthlyView> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.arrow_forward_ios),
-                    onPressed: () => setState(() {
-                      currentMonth =
-                          DateTime(currentMonth.year, currentMonth.month + 1);
-                      datesGrid = _generateDatesGrid(currentMonth);
-                    }),
+                    onPressed: () {
+                      setState(() {
+                        currentMonth = DateTime(
+                          currentMonth.month == 12
+                              ? currentMonth.year + 1
+                              : currentMonth.year,
+                          currentMonth.month + 1,
+                        );
+                        datesGrid = _generateDatesGrid(currentMonth);
+                      });
+                      calendarBloc.add(LoadMonthData(currentMonth));
+                    },
                   ),
                 ],
               ),
@@ -154,6 +176,13 @@ class MonthlyViewState extends State<MonthlyView> {
                     bool isToday = date.year == DateTime.now().year &&
                         date.month == DateTime.now().month &&
                         date.day == DateTime.now().day;
+
+                    // Find a matching date in the intensities map
+                    bool hasIntensity = state.headacheIntensities.keys.any(
+                        (d) =>
+                            d.year == date.year &&
+                            d.month == date.month &&
+                            d.day == date.day);
 
                     return GestureDetector(
                       onTap: () => _onDaySelected(date),
@@ -204,8 +233,7 @@ class MonthlyViewState extends State<MonthlyView> {
                                 ),
                               ),
                             ),
-                            if (state.headacheIntensities.containsKey(date) &&
-                                state.headacheIntensities[date]!.isNotEmpty)
+                            if (hasIntensity)
                               Positioned(
                                 top: 4,
                                 right: 4,

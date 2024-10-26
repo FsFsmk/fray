@@ -39,7 +39,7 @@ class _HeadacheLogPageState extends State<HeadacheLogPage> {
     super.initState();
     initRepo();
 
-    if (widget.hasLogs && _headacheLogBloc != null) {
+    if (_headacheLogBloc != null) {
       context.read<HeadacheLogBloc>().add(LoadHeadacheLog(widget.selectedDate));
     }
   }
@@ -149,7 +149,13 @@ class _HeadacheLogPageState extends State<HeadacheLogPage> {
     HeadacheIntensity? intensity;
     HeadacheLocation? location;
     HeadacheQuality? quality;
-    DateTime? startTime = DateTime.now();
+    DateTime? startTime = DateTime(
+      widget.selectedDate.year,
+      widget.selectedDate.month,
+      widget.selectedDate.day,
+      DateTime.now().hour,
+      DateTime.now().minute,
+    );
 
     await showDialog(
       context: context,
@@ -229,7 +235,7 @@ class _HeadacheLogPageState extends State<HeadacheLogPage> {
                 actions: [
                   TextButton(
                     onPressed: () {
-                      Navigator.pop(context);
+                      Navigator.pop(context, true);
                     },
                     child: const Text('Cancel'),
                   ),

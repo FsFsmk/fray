@@ -101,8 +101,8 @@ class HeadacheLogBloc extends Bloc<HeadacheLogEvent, HeadacheLogState> {
         headacheQuality: event.headacheLog.headacheQuality,
       );
       try {
-        List<HeadacheLog> logs =
-            formRepository.loadHeadacheLog(event.headacheLog.startTime);
+        final logs = await formRepository
+            .getHeadacheLogsForDay(event.headacheLog.startTime);
         emit(state.copyWith(headacheLogs: logs));
       } catch (e) {
         emit(state.copyWith(
@@ -115,8 +115,8 @@ class HeadacheLogBloc extends Bloc<HeadacheLogEvent, HeadacheLogState> {
     on<RemoveHeadacheLog>((event, emit) async {
       await formRepository.removeHeadacheLog(event.startTime);
       try {
-        List<HeadacheLog> logs =
-            formRepository.loadHeadacheLog(event.startTime);
+        final logs =
+            await formRepository.getHeadacheLogsForDay(event.startTime);
         emit(state.copyWith(headacheLogs: logs));
       } catch (e) {
         emit(state.copyWith(
@@ -135,8 +135,8 @@ class HeadacheLogBloc extends Bloc<HeadacheLogEvent, HeadacheLogState> {
         headacheQuality: event.headacheQuality,
       );
       try {
-        List<HeadacheLog> logs =
-            formRepository.loadHeadacheLog(event.startTime);
+        final logs =
+            await formRepository.getHeadacheLogsForDay(event.startTime);
         emit(state.copyWith(headacheLogs: logs));
       } catch (e) {
         emit(state.copyWith(
@@ -148,8 +148,8 @@ class HeadacheLogBloc extends Bloc<HeadacheLogEvent, HeadacheLogState> {
 
     on<LoadHeadacheLog>((event, emit) async {
       try {
-        List<HeadacheLog> logs =
-            formRepository.loadHeadacheLog(event.startTime);
+        final logs =
+            await formRepository.getHeadacheLogsForDay(event.startTime);
         emit(state.copyWith(headacheLogs: logs, isLoading: false));
       } catch (e) {
         emit(state.copyWith(
