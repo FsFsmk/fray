@@ -151,10 +151,4 @@ class HeadacheLogRepository {
     if (logIdsJson == null) return [];
     return List<String>.from(json.decode(logIdsJson));
   }
-
-  List<String> _getLogIdsForDaySync(String dateKey) {
-    final String? logIdsJson = _preferences.getString(dateKey);
-    if (logIdsJson == null) return [];
-    return List<String>.from(json.decode(logIdsJson));
-  }
 }

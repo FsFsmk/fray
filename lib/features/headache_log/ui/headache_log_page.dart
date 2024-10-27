@@ -82,13 +82,10 @@ class _HeadacheLogPageState extends State<HeadacheLogPage> {
 
     return BlocProvider<HeadacheLogBloc>(
       create: (context) {
-        final bloc = HeadacheLogBloc(
-          formRepository: headacheLogRepository,
-        );
         if (widget.hasLogs) {
-          bloc.add(LoadHeadacheLog(widget.selectedDate));
+          _headacheLogBloc!.add(LoadHeadacheLog(widget.selectedDate));
         }
-        return bloc;
+        return _headacheLogBloc!;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -112,7 +109,7 @@ class _HeadacheLogPageState extends State<HeadacheLogPage> {
           },
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: _addNewLog,
+          onPressed: () => _addNewLog(context, _headacheLogBloc!),
           child: const Icon(Icons.add),
         ),
       ),
@@ -146,7 +143,7 @@ class _HeadacheLogPageState extends State<HeadacheLogPage> {
     );
   }
 
-  Future<void> _addNewLog() async {
+  Future<void> _addNewLog(BuildContext context, HeadacheLogBloc bloc) async {
     HeadacheIntensity? intensity;
     HeadacheLocation? location;
     HeadacheQuality? quality;
@@ -160,24 +157,24 @@ class _HeadacheLogPageState extends State<HeadacheLogPage> {
 
     await showDialog(
       context: context,
-      builder: (context) {
-        return BlocProvider(
-          create: (context) => HeadacheLogBloc(
-            formRepository: headacheLogRepository,
-          ),
-          child: StatefulBuilder(
-            builder: (context, setState) {
-              return AlertDialog(
-                title: const Text('Add New Headache Log'),
-                content: Column(
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (statefulContext, setState) {
+            return AlertDialog(
+              title: const Text('Add New Headache Log'),
+              content: SingleChildScrollView(
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                        'Start Time: ${DateFormat.yMMMd().add_jm().format(startTime!)}'),
+                      'Start Time: ${DateFormat.yMMMd().add_jm().format(startTime!)}',
+                    ),
                     TextButton(
                       onPressed: () async {
-                        final newStartTime =
-                            await showDateTimePicker(context, startTime!);
+                        final newStartTime = await showDateTimePicker(
+                          context,
+                          startTime!,
+                        );
                         if (newStartTime != null) {
                           setState(() {
                             startTime = newStartTime;
@@ -233,37 +230,35 @@ class _HeadacheLogPageState extends State<HeadacheLogPage> {
                     ),
                   ],
                 ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context, true);
-                    },
-                    child: const Text('Cancel'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (intensity != null &&
-                          location != null &&
-                          quality != null) {
-                        final newLog = HeadacheLog(
-                          headacheQuality: quality!,
-                          intensity: intensity!,
-                          headacheLocation: location!,
-                          startTime: startTime!,
-                        );
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                  },
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (intensity != null &&
+                        location != null &&
+                        quality != null) {
+                      final newLog = HeadacheLog(
+                        headacheQuality: quality!,
+                        intensity: intensity!,
+                        headacheLocation: location!,
+                        startTime: startTime!,
+                      );
 
-                        context
-                            .read<HeadacheLogBloc>()
-                            .add(AddHeadacheLog(newLog));
-                        Navigator.pop(context);
-                      }
-                    },
-                    child: const Text('Save'),
-                  ),
-                ],
-              );
-            },
-          ),
+                      bloc.add(AddHeadacheLog(newLog));
+                      Navigator.pop(dialogContext);
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
