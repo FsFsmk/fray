@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fray/features/headache_log/bloc/headache_log_bloc.dart';
 import 'package:fray/repositories/headache_log_repository.dart';
 import 'package:intl/intl.dart';
 import 'package:fray/features/headache_log/bloc/headache_log_event.dart';
@@ -12,10 +13,10 @@ class HeadacheLogPage extends StatefulWidget {
   final bool hasLogs;
 
   const HeadacheLogPage({
-    Key? key,
+    super.key,
     required this.selectedDate,
     required this.hasLogs,
-  }) : super(key: key);
+  });
 
   @override
   State<HeadacheLogPage> createState() => _HeadacheLogPageState();
