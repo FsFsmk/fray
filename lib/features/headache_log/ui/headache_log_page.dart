@@ -11,11 +11,13 @@ import 'package:fray/models/headache_log.dart';
 class HeadacheLogPage extends StatefulWidget {
   final DateTime selectedDate;
   final bool hasLogs;
+  final HeadacheLogBloc headacheLogBloc;
 
   const HeadacheLogPage({
     super.key,
     required this.selectedDate,
     required this.hasLogs,
+    required this.headacheLogBloc,
   });
 
   @override
@@ -24,14 +26,13 @@ class HeadacheLogPage extends StatefulWidget {
 
 class _HeadacheLogPageState extends State<HeadacheLogPage> {
   late final HeadacheLogRepository headacheLogRepository;
-  HeadacheLogBloc? _headacheLogBloc;
+  late final HeadacheLogBloc _headacheLogBloc;
   bool _isInitialized = false;
 
   Future<void> initRepo() async {
     headacheLogRepository = await HeadacheLogRepository.getInstance();
     setState(() {
       _isInitialized = true;
-      _headacheLogBloc = HeadacheLogBloc(formRepository: headacheLogRepository);
     });
   }
 
@@ -40,9 +41,8 @@ class _HeadacheLogPageState extends State<HeadacheLogPage> {
     super.initState();
     initRepo();
 
-    if (_headacheLogBloc != null) {
-      context.read<HeadacheLogBloc>().add(LoadHeadacheLog(widget.selectedDate));
-    }
+    _headacheLogBloc = widget.headacheLogBloc;
+    _headacheLogBloc.add(LoadHeadacheLog(widget.selectedDate));
   }
 
   Future<DateTime?> showDateTimePicker(
@@ -83,9 +83,9 @@ class _HeadacheLogPageState extends State<HeadacheLogPage> {
     return BlocProvider<HeadacheLogBloc>(
       create: (context) {
         if (widget.hasLogs) {
-          _headacheLogBloc!.add(LoadHeadacheLog(widget.selectedDate));
+          _headacheLogBloc.add(LoadHeadacheLog(widget.selectedDate));
         }
-        return _headacheLogBloc!;
+        return _headacheLogBloc;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -109,7 +109,7 @@ class _HeadacheLogPageState extends State<HeadacheLogPage> {
           },
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () => _addNewLog(context, _headacheLogBloc!),
+          onPressed: () => _addNewLog(context, _headacheLogBloc),
           child: const Icon(Icons.add),
         ),
       ),

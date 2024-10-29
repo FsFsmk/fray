@@ -2,17 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fray/features/calendar/bloc/calendar_bloc.dart';
 import 'package:fray/features/calendar/bloc/calendar_event.dart';
+import 'package:fray/features/calendar/bloc/calendar_state.dart';
 import 'package:fray/features/headache_log/bloc/headache_log_bloc.dart';
-import 'package:fray/features/headache_log/bloc/headache_log_event.dart';
 import 'package:fray/features/headache_log/bloc/headache_log_state.dart';
 import 'package:fray/features/headache_log/ui/headache_log_page.dart';
+import 'package:fray/features/settings/bloc/settings_state.dart';
 import 'package:fray/models/headache_enum.dart';
 import 'package:fray/models/headache_log.dart';
 import 'package:fray/repositories/headache_log_repository.dart';
 import 'package:intl/intl.dart';
 
 class WeeklyView extends StatefulWidget {
-  const WeeklyView({super.key});
+  final SettingsState settingsState;
+  const WeeklyView({
+    super.key,
+    required this.settingsState,
+  });
 
   @override
   State<StatefulWidget> createState() => _WeeklyViewState();
@@ -21,58 +26,63 @@ class WeeklyView extends StatefulWidget {
 class _WeeklyViewState extends State<WeeklyView> {
   DateTime _currentDate = DateTime.now();
   late HeadacheLogRepository headacheLogRepository;
-  HeadacheLogBloc? _headacheLogBloc;
+  late HeadacheLogBloc _headacheLogBloc;
+  late CalendarBloc _calendarBloc;
   bool _isInitialized = false;
-
-  Future<void> initRepo() async {
-    headacheLogRepository = await HeadacheLogRepository.getInstance();
-    setState(() {
-      _isInitialized = true;
-      _headacheLogBloc = HeadacheLogBloc(formRepository: headacheLogRepository);
-      _loadHeadacheLogs();
-    });
-  }
+  late final SettingsState settingsState;
 
   @override
   void initState() {
     super.initState();
-    initRepo();
+    _initializeBlocs();
+    settingsState = widget.settingsState;
   }
 
-  void _loadHeadacheLogs() {
-    if (_headacheLogBloc == null) return;
+  Future<void> _initializeBlocs() async {
+    headacheLogRepository = await HeadacheLogRepository.getInstance();
+    _headacheLogBloc = HeadacheLogBloc(formRepository: headacheLogRepository);
+    _calendarBloc = CalendarBloc(
+      headacheLogRepository: headacheLogRepository,
+      updateStream: _headacheLogBloc.updateController.stream,
+      settingsState: settingsState,
+    );
+    _loadWeekData(_currentDate);
+    setState(() {
+      _isInitialized = true;
+    });
+  }
 
-    final startOfWeek =
-        _currentDate.subtract(Duration(days: _currentDate.weekday - 1));
+  void _loadWeekData(DateTime date) {
+    final startOfWeek = date.subtract(Duration(days: date.weekday - 1));
     final endOfWeek = startOfWeek.add(const Duration(days: 6));
-
-    _headacheLogBloc!.add(GetHeadacheLogsForDateRange(startOfWeek, endOfWeek));
+    DateTimeRange dateRange = DateTimeRange(start: startOfWeek, end: endOfWeek);
+    _calendarBloc.add(LoadData(dateRange));
   }
 
   void _previousWeek() {
     setState(() {
       _currentDate = _currentDate.subtract(const Duration(days: 7));
-      _loadHeadacheLogs();
+      _loadWeekData(_currentDate);
     });
   }
 
   void _nextWeek() {
     setState(() {
       _currentDate = _currentDate.add(const Duration(days: 7));
-      _loadHeadacheLogs();
+      _loadWeekData(_currentDate);
     });
   }
 
   void _onDaySelected(DateTime date) {
-    final calendarBloc = BlocProvider.of<CalendarBloc>(context);
-    calendarBloc.add(SelectDay(date));
+    _calendarBloc.add(SelectDay(date));
 
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => HeadacheLogPage(
           selectedDate: date,
-          hasLogs: calendarBloc.state.hasHeadacheLogs,
+          hasLogs: _calendarBloc.state.hasHeadacheLogs,
+          headacheLogBloc: _headacheLogBloc,
         ),
       ),
     );
@@ -84,33 +94,38 @@ class _WeeklyViewState extends State<WeeklyView> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final startOfWeek =
-        _currentDate.subtract(Duration(days: _currentDate.weekday - 1));
-    final daysOfWeek =
-        List.generate(7, (index) => startOfWeek.add(Duration(days: index)));
-
-    return BlocProvider(
-      create: (context) => _headacheLogBloc!,
-      child: Column(
-        children: [
-          _buildHeader(daysOfWeek),
-          Expanded(
-            child: BlocBuilder<HeadacheLogBloc, HeadacheLogState>(
-              builder: (context, state) {
-                if (state.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (state.errorMessage != null) {
-                  return Center(child: Text(state.errorMessage!));
-                } else if (state.headacheLogs != null &&
-                    state.headacheLogs!.isNotEmpty) {
-                  return _buildLogs(state.headacheLogs!, daysOfWeek);
-                } else {
-                  return _buildLogs([], daysOfWeek);
-                }
-              },
-            ),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<CalendarBloc>.value(value: _calendarBloc),
+        BlocProvider<HeadacheLogBloc>.value(value: _headacheLogBloc),
+      ],
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<HeadacheLogBloc, HeadacheLogState>(
+            listenWhen: (previous, current) =>
+                previous.headacheLogs != current.headacheLogs,
+            listener: (context, state) {
+              _loadWeekData(_currentDate);
+            },
           ),
         ],
+        child: BlocBuilder<CalendarBloc, CalendarState>(
+          builder: (context, state) {
+            final startOfWeek =
+                _currentDate.subtract(Duration(days: _currentDate.weekday - 1));
+            final daysOfWeek = List.generate(
+                7, (index) => startOfWeek.add(Duration(days: index)));
+
+            return Column(
+              children: [
+                _buildHeader(daysOfWeek),
+                Expanded(
+                  child: _buildLogs(state.logs, daysOfWeek),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

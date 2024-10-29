@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fray/features/headache_log/bloc/headache_log_event.dart';
 import 'package:fray/features/headache_log/bloc/headache_log_state.dart';
@@ -6,6 +8,8 @@ import 'package:fray/repositories/headache_log_repository.dart';
 
 class HeadacheLogBloc extends Bloc<HeadacheLogEvent, HeadacheLogState> {
   final HeadacheLogRepository formRepository;
+  final StreamController<DateTime> updateController =
+      StreamController<DateTime>.broadcast();
 
   HeadacheLogBloc({required this.formRepository})
       : super(
@@ -28,6 +32,8 @@ class HeadacheLogBloc extends Bloc<HeadacheLogEvent, HeadacheLogState> {
         final logs = await formRepository
             .getHeadacheLogsForDay(event.headacheLog.startTime);
         emit(state.copyWith(headacheLogs: logs));
+
+        _broadcastUpdate(event.headacheLog.startTime);
       } catch (e) {
         emit(state.copyWith(
           isLoading: false,
@@ -42,6 +48,8 @@ class HeadacheLogBloc extends Bloc<HeadacheLogEvent, HeadacheLogState> {
         final logs =
             await formRepository.getHeadacheLogsForDay(event.startTime);
         emit(state.copyWith(headacheLogs: logs));
+
+        _broadcastUpdate(event.startTime);
       } catch (e) {
         emit(state.copyWith(
           isLoading: false,
@@ -62,6 +70,8 @@ class HeadacheLogBloc extends Bloc<HeadacheLogEvent, HeadacheLogState> {
         final logs =
             await formRepository.getHeadacheLogsForDay(event.startTime);
         emit(state.copyWith(headacheLogs: logs));
+
+        _broadcastUpdate(event.startTime);
       } catch (e) {
         emit(state.copyWith(
           isLoading: false,
@@ -80,18 +90,15 @@ class HeadacheLogBloc extends Bloc<HeadacheLogEvent, HeadacheLogState> {
             isLoading: false, errorMessage: 'Failed to load logs: $e'));
       }
     });
+  }
 
-    on<GetHeadacheLogsForDateRange>((event, emit) async {
-      emit(state.copyWith(isLoading: true));
-      try {
-        final logs = await formRepository.getHeadacheLogsForDateRange(
-            event.startDate, event.endDate);
-        emit(state.copyWith(
-            headacheLogs: logs, isLoading: false, errorMessage: null));
-      } catch (e) {
-        emit(state.copyWith(
-            isLoading: false, errorMessage: 'Failed to load logs'));
-      }
-    });
+  void _broadcastUpdate(DateTime date) {
+    updateController.sink.add(date);
+  }
+
+  @override
+  Future<void> close() {
+    updateController.close();
+    return super.close();
   }
 }

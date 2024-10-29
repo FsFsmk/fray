@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 
 abstract class CalendarEvent extends Equatable {
   const CalendarEvent();
@@ -16,11 +17,11 @@ class SelectDay extends CalendarEvent {
   List<Object?> get props => [selectedDay];
 }
 
-class LoadMonthData extends CalendarEvent {
-  final DateTime month;
+class LoadData extends CalendarEvent {
+  final DateTimeRange dateRange;
 
-  const LoadMonthData(this.month);
+  const LoadData(this.dateRange);
 
   @override
-  List<Object?> get props => [month];
+  List<Object?> get props => [dateRange];
 }

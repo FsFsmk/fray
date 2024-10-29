@@ -127,21 +127,6 @@ class HeadacheLogRepository {
     }).toList();
   }
 
-  Future<List<HeadacheLog>> getHeadacheLogsForDateRange(
-      DateTime startDate, DateTime endDate) async {
-    List<HeadacheLog> logsInRange = [];
-
-    for (DateTime date = startDate;
-        date.isBefore(endDate.add(const Duration(days: 1)));
-        date = date.add(const Duration(days: 1))) {
-      final List<HeadacheLog> dailyLogs = await getHeadacheLogsForDay(date);
-
-      logsInRange.addAll(dailyLogs);
-    }
-
-    return logsInRange;
-  }
-
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
