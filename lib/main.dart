@@ -6,13 +6,13 @@ import 'package:fray/features/calendar/ui/calendar_page.dart';
 import 'package:fray/features/settings/bloc/settings_state.dart';
 import 'package:fray/models/enum_to_string.dart';
 import 'repositories/settings_repository.dart';
-import 'features/settings/bloc/settings_event.dart';
+import 'features/settings/bloc/settings_bloc.dart';
 import 'package:fray/generated/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final settingsRepository = await SettingsRepository.getInstance(null);
+  final settingsRepository = await SettingsRepository.getInstance();
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();

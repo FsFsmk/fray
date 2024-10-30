@@ -8,6 +8,8 @@ abstract class SettingsEvent extends Equatable {
   List<Object> get props => [];
 }
 
+class LoadSettings extends SettingsEvent {}
+
 class LanguageChanged extends SettingsEvent {
   final Language language;
 
@@ -24,4 +26,13 @@ class ThemeModeChanged extends SettingsEvent {
 
   @override
   List<Object> get props => [isDarkMode];
+}
+
+class CalendarViewChanged extends SettingsEvent {
+  final CalendarView calendarView;
+
+  const CalendarViewChanged(this.calendarView);
+
+  @override
+  List<Object> get props => [calendarView];
 }
